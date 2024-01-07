@@ -1,9 +1,7 @@
 package com.example.cardapio.controller;
 
-import com.example.cardapio.user.AuthenticationDTO;
-import com.example.cardapio.user.RegisterDTO;
-import com.example.cardapio.user.User;
-import com.example.cardapio.user.UserRepository;
+import com.example.cardapio.infra.security.TokenService;
+import com.example.cardapio.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,12 +19,17 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private TokenService tokenService;
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody AuthenticationDTO data){
         var userNamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
         var auth = authenticationManager.authenticate(userNamePassword);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.generateToken((User) auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegisterDTO data){
